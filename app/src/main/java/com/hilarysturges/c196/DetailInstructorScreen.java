@@ -31,13 +31,14 @@ public class DetailInstructorScreen extends AppCompatActivity {
         final EditText emailEdit = new EditText(this);
         Button editButton = new Button(this);
         Button deleteButton = new Button(this);
+        Button linkToCourseButton = new Button(this);
         linearLayout.setOrientation(LinearLayout.VERTICAL);
         setContentView(linearLayout);
 
         Intent data = getIntent();
-        String name = data.getStringExtra("name");
-        String phoneNumber = data.getStringExtra("phoneNumber");
-        String email = data.getStringExtra("email");
+        final String name = data.getStringExtra("name");
+        final String phoneNumber = data.getStringExtra("phoneNumber");
+        final String email = data.getStringExtra("email");
         final int _id = Integer.parseInt(data.getStringExtra("ID"));
         final int index = Integer.parseInt(data.getStringExtra("index"));
 
@@ -63,6 +64,7 @@ public class DetailInstructorScreen extends AppCompatActivity {
 
         editButton.setText("Edit");
         deleteButton.setText("Delete");
+        linkToCourseButton.setText("Link to Course");
 
         linearLayout.addView(nameText);
         linearLayout.addView(nameEdit);
@@ -73,6 +75,7 @@ public class DetailInstructorScreen extends AppCompatActivity {
 
         linearLayout.addView(editButton);
         linearLayout.addView(deleteButton);
+        linearLayout.addView(linkToCourseButton);
 
         deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -94,6 +97,19 @@ public class DetailInstructorScreen extends AppCompatActivity {
                 MainActivity.instructors.get(index).setPhoneNumber(phoneEdit.getText().toString());
                 MainActivity.instructors.get(index).setEmail(emailEdit.getText().toString());
                 Intent i = new Intent(getApplicationContext(), InstructorScreen.class);
+                startActivity(i);
+            }
+        });
+
+        linkToCourseButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(getApplicationContext(), LinkInstructorToCourseScreen.class);
+                i.putExtra("ID", _id);
+                i.putExtra("index", index);
+                i.putExtra("name", name);
+                i.putExtra("phone", phoneNumber);
+                i.putExtra("email", email);
                 startActivity(i);
             }
         });

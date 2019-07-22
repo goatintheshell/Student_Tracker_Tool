@@ -10,8 +10,6 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.sql.Date;
-
 public class DetailAssessmentScreen extends AppCompatActivity {
 
     DBManager databaseMan;
@@ -91,7 +89,7 @@ public class DetailAssessmentScreen extends AppCompatActivity {
         linkToCourseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent i = new Intent(getApplicationContext(), linkAssessmentToCourseScreen.class);
+                Intent i = new Intent(getApplicationContext(), LinkAssessmentToCourseScreen.class);
                 i.putExtra("ID", _id);
                 i.putExtra("index", index);
                 i.putExtra("name", name);

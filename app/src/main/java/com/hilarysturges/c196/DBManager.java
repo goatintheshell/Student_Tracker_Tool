@@ -25,6 +25,10 @@ public class DBManager extends SQLiteOpenHelper {
     public static final String COLUMN_START_C = "startC";
     public static final String COLUMN_END_C = "endC";
     public static final String COLUMN_STATUS_C = "statusC";
+    public static final String COLUMN_NOTES_C = "notesC";
+    public static final String COLUMN_START_NOT_C = "startNotC";
+    public static final String COLUMN_END_NOT_C = "endNotC";
+    public static final String COLUMN_TERM_ID_C = "termIdC";
     public static final String TABLE_ASSESSMENTS = "assessments";
     public static final String COLUMN_ID_A = "idA";
     public static final String COLUMN_NAME_A = "nameA";
@@ -51,8 +55,9 @@ public class DBManager extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(termQuery);
 
         String courseQuery = "CREATE TABLE IF NOT EXISTS " + TABLE_COURSES + "(" + COLUMN_ID_C + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-                + COLUMN_TITLE_C + " TEXT, " + COLUMN_START_C + " DATE, "
-                + COLUMN_END_C + " DATE, " + COLUMN_STATUS_C + " TEXT);";
+                + COLUMN_TITLE_C + " TEXT, " + COLUMN_START_C + " DATE, " + COLUMN_NOTES_C + " TEXT, " + COLUMN_START_NOT_C + " INTEGER, "
+                + COLUMN_END_NOT_C + " INTEGER, " + COLUMN_END_C + " DATE, " + COLUMN_STATUS_C + " TEXT, "
+                + COLUMN_TERM_ID_C + " INTEGER, FOREIGN KEY (" + COLUMN_TERM_ID_C + ") REFERENCES " + TABLE_TERMS + "(" + COLUMN_ID_T + "));";
         sqLiteDatabase.execSQL(courseQuery);
 
         String assessmentQuery = "CREATE TABLE IF NOT EXISTS " + TABLE_ASSESSMENTS + "(" + COLUMN_ID_A + " INTEGER PRIMARY KEY AUTOINCREMENT, "
@@ -62,7 +67,7 @@ public class DBManager extends SQLiteOpenHelper {
 
         String instructorQuery = "CREATE TABLE IF NOT EXISTS " + TABLE_INSTRUCTORS + "(" + COLUMN_ID_I + " INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + COLUMN_NAME_I + " TEXT, "
-                + COLUMN_PHONE_I + " TEXT, " + COLUMN_EMAIL_I+ " TEXT, "
+                + COLUMN_PHONE_I + " TEXT, " + COLUMN_EMAIL_I+ " TEXT, " + COLUMN_COURSE_ID_I + " INTEGER, "
                 + "FOREIGN KEY (" + COLUMN_COURSE_ID_I + ") REFERENCES " + TABLE_INSTRUCTORS + "(" + COLUMN_ID_C +"));";
         sqLiteDatabase.execSQL(instructorQuery);
     }
@@ -232,9 +237,17 @@ public class DBManager extends SQLiteOpenHelper {
         ArrayList<Course> courses = new ArrayList<>();
         SQLiteDatabase db = getWritableDatabase();
         String query = "SELECT * FROM " + TABLE_COURSES + ";";
+        String queryA = "SELECT * FROM " + TABLE_ASSESSMENTS + ";";
+        String queryI = "SELECT * FROM " + TABLE_INSTRUCTORS + ";";
 
         Cursor c = db.rawQuery(query,null);
         c.moveToFirst();
+
+        Cursor cA = db.rawQuery(queryA,null);
+        cA.moveToFirst();
+
+        Cursor cI = db.rawQuery(queryI,null);
+        cI.moveToFirst();
 
         while (!c.isAfterLast()) {
             if (c.getString(c.getColumnIndex(COLUMN_ID_C))!=null) {
@@ -243,6 +256,23 @@ public class DBManager extends SQLiteOpenHelper {
                 String endDate = c.getString(c.getColumnIndex(COLUMN_END_C));
                 java.sql.Date endDateNew = Date.valueOf(endDate);
                 Course course = new Course(c.getInt(c.getColumnIndex(COLUMN_ID_C)), c.getString(c.getColumnIndex(COLUMN_TITLE_C)), startDateNew, endDateNew, c.getString(c.getColumnIndex(COLUMN_STATUS_C)));
+                if (!c.isNull(c.getColumnIndex(COLUMN_NOTES_C))) {
+                    course.setNotes(c.getString(c.getColumnIndex(COLUMN_NOTES_C)));
+                }
+                if ((!cA.isNull(cA.getColumnIndex(COLUMN_COURSE_ID_A))) && cA.getString(cA.getColumnIndex(COLUMN_COURSE_ID_A)).equalsIgnoreCase(c.getString(c.getColumnIndex(COLUMN_ID_C)))) {
+                    Assessment assessment = new Assessment(cA.getString(cA.getColumnIndex(COLUMN_NAME_A)),cA.getString(cA.getColumnIndex(COLUMN_TYPE_A)));
+                    course.setAssessment(assessment);
+                    cA.moveToNext();
+                } else {
+                    cA.moveToNext();
+                }
+                if ((!cI.isNull(cI.getColumnIndex(COLUMN_COURSE_ID_I))) && cI.getString(cI.getColumnIndex(COLUMN_COURSE_ID_I)).equalsIgnoreCase(c.getString(c.getColumnIndex(COLUMN_ID_C)))) {
+                    Instructor instructor = new Instructor(cI.getString(cI.getColumnIndex(COLUMN_NAME_I)),cI.getString(cI.getColumnIndex(COLUMN_PHONE_I)),cI.getString(cI.getColumnIndex(COLUMN_EMAIL_I)));
+                    course.setInstructor(instructor);
+                    cI.moveToNext();
+                } else {
+                    cI.moveToNext();
+                }
                 courses.add(course);
 
             } c.moveToNext();
@@ -323,7 +353,7 @@ public class DBManager extends SQLiteOpenHelper {
 
     }
 
-    public Assessment getLastAsessment() {
+    public Assessment getLastAssessment() {
         SQLiteDatabase db = getWritableDatabase();
         String query = "SELECT * FROM " + TABLE_ASSESSMENTS+ " ORDER BY idA DESC LIMIT 1;";
 
@@ -392,6 +422,83 @@ public class DBManager extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
         String query = "UPDATE " + TABLE_ASSESSMENTS + " SET " + COLUMN_COURSE_ID_A + " = "  + course_id
                 + " WHERE idA = " + assessment_id + ";";
+        db.execSQL(query);
+        db.close();
+    }
+
+    public void linkInstructorToCourse(int course_id, int instructor_id) {
+        SQLiteDatabase db = getWritableDatabase();
+        String query = "UPDATE " + TABLE_INSTRUCTORS + " SET " + COLUMN_COURSE_ID_I + " = "  + course_id
+                + " WHERE idI = " + instructor_id + ";";
+        db.execSQL(query);
+        db.close();
+    }
+
+    public void addNotes(int _id, String notes) {
+        SQLiteDatabase db = getWritableDatabase();
+        String query = "UPDATE " + TABLE_COURSES + " SET " + COLUMN_NOTES_C + " = " + "\'" + notes + "\'"
+                + " WHERE idC = " + _id + ";";
+        db.execSQL(query);
+        db.close();
+
+    }
+
+    public void turnCourseStartOn(int _id) {
+        SQLiteDatabase db = getWritableDatabase();
+        String query = "UPDATE " + TABLE_COURSES + " SET " + COLUMN_START_NOT_C + " = 1 WHERE idC = " + _id + ";";
+        db.execSQL(query);
+        db.close();
+    }
+
+    public void turnCourseStartOff(int _id) {
+        SQLiteDatabase db = getWritableDatabase();
+        String query = "UPDATE " + TABLE_COURSES + " SET " + COLUMN_START_NOT_C + " = 0 WHERE idC = " + _id + ";";
+        db.execSQL(query);
+        db.close();
+    }
+
+    public int checkCourseStartOn(int _id) {
+        SQLiteDatabase db = getWritableDatabase();
+        String query = "SELECT * FROM " + TABLE_COURSES + " WHERE idC = " + _id + ";";
+        Cursor c = db.rawQuery(query, null);
+        c.moveToFirst();
+        if (!c.isNull(c.getColumnIndex(COLUMN_START_NOT_C))) {
+            return c.getInt(c.getColumnIndex(COLUMN_START_NOT_C));
+        } else {
+            return 0;
+        }
+    }
+
+    public void turnCourseEndOn(int _id) {
+        SQLiteDatabase db = getWritableDatabase();
+        String query = "UPDATE " + TABLE_COURSES + " SET " + COLUMN_END_NOT_C + " = 1 WHERE idC = " + _id + ";";
+        db.execSQL(query);
+        db.close();
+    }
+
+    public void turnCourseEndOff(int _id) {
+        SQLiteDatabase db = getWritableDatabase();
+        String query = "UPDATE " + TABLE_COURSES + " SET " + COLUMN_END_NOT_C + " = 0 WHERE idC = " + _id + ";";
+        db.execSQL(query);
+        db.close();
+    }
+
+    public int checkCourseEndOn(int _id) {
+        SQLiteDatabase db = getWritableDatabase();
+        String query = "SELECT * FROM " + TABLE_COURSES + " WHERE idC = " + _id + ";";
+        Cursor c = db.rawQuery(query, null);
+        c.moveToFirst();
+        if (!c.isNull(c.getColumnIndex(COLUMN_END_NOT_C))) {
+            return c.getInt(c.getColumnIndex(COLUMN_END_NOT_C));
+        } else {
+            return 0;
+        }
+    }
+
+    public void addCourseToTerm(int course_id, int term_id) {
+        SQLiteDatabase db = getWritableDatabase();
+        String query = "UPDATE " + TABLE_COURSES + " SET " + COLUMN_TERM_ID_C + " = "
+                + term_id + " WHERE idC = " + course_id + ";";
         db.execSQL(query);
         db.close();
     }

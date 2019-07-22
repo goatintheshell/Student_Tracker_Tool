@@ -8,6 +8,7 @@ public class Course  {
     private Date startDate;
     private Date endDate;
     private String status;
+    private String notes;
     private Assessment assessment;
     private Instructor instructor;
 
@@ -25,14 +26,6 @@ public class Course  {
         this.startDate = startDate;
         this.endDate = endDate;
         this.status = status;
-    }
-
-    public Course(Assessment assessment) {
-        this.assessment = assessment;
-    }
-
-    public Course(Instructor instructor) {
-        this.instructor = instructor;
     }
 
     public String getTitle() {
@@ -89,6 +82,14 @@ public class Course  {
 
     public void set_id(int _id) {
         this._id = _id;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 }
 

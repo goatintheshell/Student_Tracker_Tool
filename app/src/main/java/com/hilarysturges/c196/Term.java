@@ -1,5 +1,6 @@
 package com.hilarysturges.c196;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
@@ -8,6 +9,7 @@ public class Term {
     private String title;
     private java.sql.Date startDate;
     private java.sql.Date endDate;
+    private ArrayList<Course> courses;
 
     public Term(String title, java.sql.Date startDate, java.sql.Date endDate) {
         this.title = title;
@@ -52,5 +54,21 @@ public class Term {
 
     public void set_id(int _id) {
         this._id = _id;
+    }
+
+    public ArrayList<Course> getTermCourses() {
+        return courses;
+    }
+
+    public void setTermCourses(ArrayList<Course> courses) {
+        this.courses = courses;
+    }
+
+    public Course getTermCourse(int i) {
+        return courses.get(i);
+    }
+
+    public void setTermCourse(Course course) {
+        courses.add(course);
     }
 }

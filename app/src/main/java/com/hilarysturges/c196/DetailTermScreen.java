@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import java.sql.Date;
@@ -24,6 +25,7 @@ public class DetailTermScreen extends AppCompatActivity {
 
         databaseMan = new DBManager(this, null, null, 1);
 
+        ScrollView scrollView = new ScrollView(this);
         LinearLayout linearLayout = new LinearLayout(this);
         TextView titleText = new TextView(this);
         final EditText titleEdit = new EditText(this);
@@ -31,6 +33,7 @@ public class DetailTermScreen extends AppCompatActivity {
         final EditText startEdit = new EditText(this);
         TextView endText = new TextView(this);
         final EditText endEdit = new EditText(this);
+        TextView coursesText = new TextView(this);
         Button editButton = new Button(this);
         Button deleteButton = new Button(this);
         linearLayout.setOrientation(LinearLayout.VERTICAL);
@@ -60,9 +63,22 @@ public class DetailTermScreen extends AppCompatActivity {
         endEdit.setText(end);
         endEdit.setTextSize(30);
         endEdit.setPadding(30,0,0,30);
+        coursesText.setText("Courses:");
+        coursesText.setTextSize(30);
+        coursesText.setPadding(30,30,0,0);
 
         editButton.setText("Edit");
         deleteButton.setText("Delete");
+
+        Term term = MainActivity.terms.get(index);
+        for (int i=0; i<term.getTermCourses().size() ; i++) {
+            Course course = term.getTermCourse(i);
+            TextView courseNew = new TextView(this);
+            courseNew.setText(course.getTitle());
+            courseNew.setTextSize(30);
+            courseNew.setPadding(30, 0, 0, 0);
+            courseNew.setId(i);
+        }
 
         linearLayout.addView(titleText);
         linearLayout.addView(titleEdit);
@@ -70,10 +86,12 @@ public class DetailTermScreen extends AppCompatActivity {
         linearLayout.addView(startEdit);
         linearLayout.addView(endText);
         linearLayout.addView(endEdit);
+        linearLayout.addView(coursesText);
 
         linearLayout.addView(editButton);
         linearLayout.addView(deleteButton);
-        setContentView(linearLayout);
+        scrollView.addView(linearLayout);
+        setContentView(scrollView);
 
         deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override

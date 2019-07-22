@@ -103,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
     public static void addNewAssessment(String name,String type) {
             Assessment assessment = new Assessment(name,type);
             databaseMan.addAssessment(assessment);
-            Assessment assessment2 = databaseMan.getLastAsessment();
+            Assessment assessment2 = databaseMan.getLastAssessment();
             assessments.add(assessment2);
     }
 
