@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -33,8 +34,8 @@ public class LinkCourseToTermScreen extends AppCompatActivity {
         ScrollView scrollView = new ScrollView(this);
         LinearLayout linearLayout = new LinearLayout(this);
         linearLayout.setOrientation(LinearLayout.VERTICAL);
-        RadioGroup radioGroup = new RadioGroup(this);
-        Button submitButton = new Button(this);
+        final RadioGroup radioGroup = new RadioGroup(this);
+        final Button submitButton = new Button(this);
 
         Intent data = getIntent();
         final String title = data.getStringExtra("title");
@@ -46,21 +47,28 @@ public class LinkCourseToTermScreen extends AppCompatActivity {
 
         final String[] termDetails = new String[5];
         for (int i = 0; i < textArray.size(); i++) {
-            RadioButton radioButton = new RadioButton(this);
+            final RadioButton radioButton = new RadioButton(this);
             radioButton.setText(String.valueOf(textArray.get(i)));
             radioButton.setTextSize(30);
             radioButton.setId(i);
             radioButton.setPadding(30, 30, 0, 30);
-            linearLayout.addView(radioButton);
-            termDetails[0] = MainActivity.terms.get(i).getTitle();
-            termDetails[1] = String.valueOf(MainActivity.terms.get(i).getStartDate());
-            termDetails[2] = String.valueOf(MainActivity.terms.get(i).getEndDate());
-            termDetails[3] = String.valueOf(MainActivity.terms.get(i).get_id());
-            termDetails[4] = String.valueOf(i);
-
+            radioGroup.addView(radioButton);
+            radioButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                    if (b) {
+                        termDetails[0] = MainActivity.terms.get(radioButton.getId()).getTitle();
+                        termDetails[1] = String.valueOf(MainActivity.terms.get(radioButton.getId()).getStartDate());
+                        termDetails[2] = String.valueOf(MainActivity.terms.get(radioButton.getId()).getEndDate());
+                        termDetails[3] = String.valueOf(MainActivity.terms.get(radioButton.getId()).get_id());
+                        termDetails[4] = String.valueOf(radioButton.getId());
+                    }
+                }
+            });
         }
 
         submitButton.setText("Attach to Selected Term");
+        linearLayout.addView(radioGroup);
         linearLayout.addView(submitButton);
 
         scrollView.addView(linearLayout);
@@ -72,7 +80,10 @@ public class LinkCourseToTermScreen extends AppCompatActivity {
                 try{databaseMan.addCourseToTerm(course_id, Integer.parseInt(termDetails[3]));}
                 catch(Exception e) {System.out.println(e.getMessage());}
                 Course course = MainActivity.courses.get(course_index);
-                System.out.println(termDetails[0]);
+                if (MainActivity.terms.get(Integer.parseInt(termDetails[4])).getTermCourses()==null) {
+                    ArrayList<Course> courses = new ArrayList<>();
+                    MainActivity.terms.get(Integer.parseInt(termDetails[4])).setTermCourses(courses);
+                }
                 MainActivity.terms.get(Integer.parseInt(termDetails[4])).setTermCourse(course);
                 Intent i = new Intent(getApplicationContext(), MainActivity.class);
                 startActivity(i);

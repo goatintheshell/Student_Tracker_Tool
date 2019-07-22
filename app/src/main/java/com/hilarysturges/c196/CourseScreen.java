@@ -53,9 +53,9 @@ public class CourseScreen extends AppCompatActivity {
                     intent.putExtra("status", status);
                     intent.putExtra("ID", id);
                     intent.putExtra("index", index);
-                    if (MainActivity.courses.get(textView.getId()).getAssessment() != null) {
-                        intent.putExtra("assessmentName", MainActivity.courses.get(textView.getId()).getAssessment().getName());
-                        intent.putExtra("assessmentType", MainActivity.courses.get(textView.getId()).getAssessment().getType());
+                    if (MainActivity.courses.get(textView.getId()).getCourseAssessments() != null) {
+                        intent.putExtra("assessmentName", MainActivity.courses.get(textView.getId()).getCourseAssessment(textView.getId()).getName());
+                        intent.putExtra("assessmentType", MainActivity.courses.get(textView.getId()).getCourseAssessment(textView.getId()).getType());
                     }
                     if (MainActivity.courses.get(textView.getId()).getInstructor() != null) {
                         intent.putExtra("instructorName", MainActivity.courses.get(textView.getId()).getInstructor().getName());

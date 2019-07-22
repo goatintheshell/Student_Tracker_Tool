@@ -70,16 +70,6 @@ public class DetailTermScreen extends AppCompatActivity {
         editButton.setText("Edit");
         deleteButton.setText("Delete");
 
-        Term term = MainActivity.terms.get(index);
-        for (int i=0; i<term.getTermCourses().size() ; i++) {
-            Course course = term.getTermCourse(i);
-            TextView courseNew = new TextView(this);
-            courseNew.setText(course.getTitle());
-            courseNew.setTextSize(30);
-            courseNew.setPadding(30, 0, 0, 0);
-            courseNew.setId(i);
-        }
-
         linearLayout.addView(titleText);
         linearLayout.addView(titleEdit);
         linearLayout.addView(startText);
@@ -87,6 +77,21 @@ public class DetailTermScreen extends AppCompatActivity {
         linearLayout.addView(endText);
         linearLayout.addView(endEdit);
         linearLayout.addView(coursesText);
+
+        Term term = MainActivity.terms.get(index);
+        if (term.getTermCourses()!=null) {
+            for (int i = 0; i < term.getTermCourses().size(); i++) {
+                Course course = term.getTermCourse(i);
+                TextView courseNew = new TextView(this);
+                courseNew.setText(course.getTitle());
+                courseNew.setTextSize(30);
+                courseNew.setPadding(30, 0, 0, 0);
+                courseNew.setId(i);
+                linearLayout.addView(courseNew);
+            }
+        }
+
+
 
         linearLayout.addView(editButton);
         linearLayout.addView(deleteButton);

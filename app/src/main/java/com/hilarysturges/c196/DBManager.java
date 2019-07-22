@@ -214,17 +214,39 @@ public class DBManager extends SQLiteOpenHelper {
         ArrayList<Term> terms = new ArrayList<>();
         SQLiteDatabase db = getWritableDatabase();
         String query = "SELECT * FROM " + TABLE_TERMS + ";";
+        String queryC = "SELECT * FROM " + TABLE_COURSES + ";";
 
         Cursor c = db.rawQuery(query,null);
         c.moveToFirst();
 
+        Cursor cC= db.rawQuery(queryC,null);
+        cC.moveToFirst();
+
         while (!c.isAfterLast()) {
-            if (c.getString(c.getColumnIndex(COLUMN_ID_T))!=null) {
+            if (!c.isNull(c.getColumnIndex(COLUMN_ID_T))) {
                 String startDate = c.getString(c.getColumnIndex(COLUMN_START_T));
                 java.sql.Date startDateNew = Date.valueOf(startDate);
                 String endDate = c.getString(c.getColumnIndex(COLUMN_END_T));
                 java.sql.Date endDateNew = Date.valueOf(endDate);
                 Term term = new Term(c.getInt(c.getColumnIndex(COLUMN_ID_T)), c.getString(c.getColumnIndex(COLUMN_TITLE_T)), startDateNew, endDateNew);
+                while (!cC.isAfterLast()) {
+                    if ((!cC.isNull(cC.getColumnIndex(COLUMN_ID_C))) && (cC.getString(cC.getColumnIndex(COLUMN_TERM_ID_C)).equalsIgnoreCase(c.getString(c.getColumnIndex(COLUMN_ID_T))))) {
+                        System.out.println("adding course");
+                        String startDateC = cC.getString(cC.getColumnIndex(COLUMN_START_C));
+                        java.sql.Date startDateNewC = Date.valueOf(startDateC);
+                        String endDateC = cC.getString(cC.getColumnIndex(COLUMN_END_C));
+                        java.sql.Date endDateNewC = Date.valueOf(endDateC);
+                        Course course = new Course(cC.getString(cC.getColumnIndex(COLUMN_TITLE_C)), startDateNewC, endDateNewC, cC.getString(cC.getColumnIndex(COLUMN_STATUS_C)));
+                        if (term.getTermCourses() == null) {
+                            ArrayList<Course> courses = new ArrayList<>();
+                            term.setTermCourses(courses);
+                        }
+                        term.setTermCourse(course);
+                        cC.moveToNext();
+                    } else {
+                        cC.moveToNext();
+                    }
+                }
                 terms.add(term);
 
             } c.moveToNext();
@@ -259,19 +281,27 @@ public class DBManager extends SQLiteOpenHelper {
                 if (!c.isNull(c.getColumnIndex(COLUMN_NOTES_C))) {
                     course.setNotes(c.getString(c.getColumnIndex(COLUMN_NOTES_C)));
                 }
-                if ((!cA.isNull(cA.getColumnIndex(COLUMN_COURSE_ID_A))) && cA.getString(cA.getColumnIndex(COLUMN_COURSE_ID_A)).equalsIgnoreCase(c.getString(c.getColumnIndex(COLUMN_ID_C)))) {
-                    Assessment assessment = new Assessment(cA.getString(cA.getColumnIndex(COLUMN_NAME_A)),cA.getString(cA.getColumnIndex(COLUMN_TYPE_A)));
-                    course.setAssessment(assessment);
-                    cA.moveToNext();
-                } else {
-                    cA.moveToNext();
+                while (!cA.isAfterLast()) {
+                    if ((!cA.isNull(cA.getColumnIndex(COLUMN_COURSE_ID_A))) && cA.getString(cA.getColumnIndex(COLUMN_COURSE_ID_A)).equalsIgnoreCase(c.getString(c.getColumnIndex(COLUMN_ID_C)))) {
+                        Assessment assessment = new Assessment(cA.getString(cA.getColumnIndex(COLUMN_NAME_A)), cA.getString(cA.getColumnIndex(COLUMN_TYPE_A)));
+                        if (course.getCourseAssessments()==null) {
+                            ArrayList<Assessment> assessments = new ArrayList<>();
+                            course.setCourseAssessments(assessments);
+                        }
+                        course.setCourseAssessment(assessment);
+                        cA.moveToNext();
+                    } else {
+                        cA.moveToNext();
+                    }
                 }
-                if ((!cI.isNull(cI.getColumnIndex(COLUMN_COURSE_ID_I))) && cI.getString(cI.getColumnIndex(COLUMN_COURSE_ID_I)).equalsIgnoreCase(c.getString(c.getColumnIndex(COLUMN_ID_C)))) {
-                    Instructor instructor = new Instructor(cI.getString(cI.getColumnIndex(COLUMN_NAME_I)),cI.getString(cI.getColumnIndex(COLUMN_PHONE_I)),cI.getString(cI.getColumnIndex(COLUMN_EMAIL_I)));
-                    course.setInstructor(instructor);
-                    cI.moveToNext();
-                } else {
-                    cI.moveToNext();
+                while (!cI.isAfterLast()) {
+                    if ((!cI.isNull(cI.getColumnIndex(COLUMN_COURSE_ID_I))) && cI.getString(cI.getColumnIndex(COLUMN_COURSE_ID_I)).equalsIgnoreCase(c.getString(c.getColumnIndex(COLUMN_ID_C)))) {
+                        Instructor instructor = new Instructor(cI.getString(cI.getColumnIndex(COLUMN_NAME_I)), cI.getString(cI.getColumnIndex(COLUMN_PHONE_I)), cI.getString(cI.getColumnIndex(COLUMN_EMAIL_I)));
+                        course.setInstructor(instructor);
+                        cI.moveToNext();
+                    } else {
+                        cI.moveToNext();
+                    }
                 }
                 courses.add(course);
 

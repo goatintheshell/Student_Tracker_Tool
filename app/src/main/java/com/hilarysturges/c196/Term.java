@@ -2,7 +2,6 @@ package com.hilarysturges.c196;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Locale;
 
 public class Term {
     private int _id;
@@ -69,6 +68,6 @@ public class Term {
     }
 
     public void setTermCourse(Course course) {
-        courses.add(course);
+        this.courses.add(course);
     }
 }

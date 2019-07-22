@@ -65,7 +65,6 @@ public class LinkAssessmentToCourseScreen extends AppCompatActivity {
                     }
                 }
             });
-
         }
 
         submitButton.setText("Attach to Selected Course");
@@ -82,7 +81,11 @@ public class LinkAssessmentToCourseScreen extends AppCompatActivity {
                     try {databaseMan.linkAssessmentToCourse(Integer.parseInt(courseDetails[4]), assessment_id);}
                     catch (Exception e) {System.out.println(e.getMessage());}
                     Assessment assessment = MainActivity.assessments.get(assessment_index);
-                    MainActivity.courses.get(Integer.parseInt(courseDetails[5])).setAssessment(assessment);
+                    if (MainActivity.courses.get(Integer.parseInt(courseDetails[5])).getCourseAssessments()==null) {
+                        ArrayList<Assessment> assessments = new ArrayList<>();
+                        MainActivity.courses.get(Integer.parseInt(courseDetails[5])).setCourseAssessments(assessments);
+                    }
+                    MainActivity.courses.get(Integer.parseInt(courseDetails[5])).setCourseAssessment(assessment);
                     Intent i = new Intent(getApplicationContext(), MainActivity.class);
                     startActivity(i);
                     Toast toast = Toast.makeText(getApplicationContext(), "Linked to course successfully", Toast.LENGTH_SHORT);

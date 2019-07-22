@@ -62,11 +62,11 @@ public class DetailCourseScreen extends AppCompatActivity {
         Switch endSwitch = new Switch(this);
         TextView statusText = new TextView(this);
         final EditText statusEdit = new EditText(this);
+        TextView instructorsText = new TextView(this);
         TextView instructorNameText = new TextView(this);
         TextView instructorPhoneText = new TextView(this);
         TextView instructorEmailText = new TextView(this);
-        TextView assessmentNameText = new TextView(this);
-        TextView assessmentTypeText = new TextView(this);
+        TextView assessmentsText = new TextView(this);
         Button editButton = new Button(this);
         Button deleteButton = new Button(this);
         Button addNotesButton = new Button(this);
@@ -119,6 +119,9 @@ public class DetailCourseScreen extends AppCompatActivity {
         statusEdit.setTextSize(30);
         statusEdit.setPadding(30,0,0,30);
 
+        instructorsText.setText("Instructors:");
+        instructorsText.setTextSize(30);
+        instructorsText.setPadding(30,30,0,0);
         instructorNameText.setText("Instructor Name: " + instructorName);
         instructorNameText.setTextSize(30);
         instructorNameText.setPadding(30,30,0,30);
@@ -128,12 +131,9 @@ public class DetailCourseScreen extends AppCompatActivity {
         instructorEmailText.setText("Instructor Email: " + instructorEmail);
         instructorEmailText.setTextSize(30);
         instructorEmailText.setPadding(30,30,0,30);
-        assessmentNameText.setText("Assessment Name: " + assessmentName);
-        assessmentNameText.setTextSize(30);
-        assessmentNameText.setPadding(30,30,0,30);
-        assessmentTypeText.setText("Assessment Type: " + assessmentType);
-        assessmentTypeText.setTextSize(30);
-        assessmentTypeText.setPadding(30,30,0,30);
+        assessmentsText.setText("Assessments:");
+        assessmentsText.setTextSize(30);
+        assessmentsText.setPadding(30, 30,0,0);
 
         editButton.setText("Edit");
         deleteButton.setText("Delete");
@@ -160,15 +160,38 @@ public class DetailCourseScreen extends AppCompatActivity {
         linearLayout.addView(endSwitch);
         linearLayout.addView(statusText);
         linearLayout.addView(statusEdit);
+        linearLayout.addView(instructorsText);
                 if (instructorName != null) {
             linearLayout.addView(instructorNameText);
             linearLayout.addView(instructorPhoneText);
             linearLayout.addView(instructorEmailText);
+        } else {
+                    TextView noIns = new TextView(this);
+                    noIns.setTextSize(15);
+                    noIns.setText("No Instructors Linked");
+                    noIns.setPadding(30,30,0,30);
+                    linearLayout.addView(noIns);
+                }
+                linearLayout.addView(assessmentsText);
+        Course course = MainActivity.courses.get(index);
+        if (course.getCourseAssessments()!=null) {
+            for (int i = 0; i < course.getCourseAssessments().size(); i++) {
+                Assessment assessment = course.getCourseAssessment(i);
+                TextView assessmentNew = new TextView(this);
+                assessmentNew.setText(assessment.getName());
+                assessmentNew.setTextSize(30);
+                assessmentNew.setPadding(30, 0, 0, 0);
+                assessmentNew.setId(i);
+                linearLayout.addView(assessmentNew);
+            }
+        } else {
+            TextView noAss = new TextView(this);
+            noAss.setText("No Assessments Linked");
+            noAss.setTextSize(15);
+            noAss.setPadding(30,30,0,30);
+            linearLayout.addView(noAss);
         }
-        if (assessmentName != null) {
-            linearLayout.addView(assessmentNameText);
-            linearLayout.addView(assessmentTypeText);
-        }
+
         linearLayout.addView(editButton);
         linearLayout.addView(deleteButton);
         linearLayout.addView(addNotesButton);

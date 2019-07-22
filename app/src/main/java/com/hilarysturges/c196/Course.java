@@ -1,5 +1,6 @@
 package com.hilarysturges.c196;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 public class Course  {
@@ -9,7 +10,8 @@ public class Course  {
     private Date endDate;
     private String status;
     private String notes;
-    private Assessment assessment;
+    private ArrayList<Assessment> assessments;
+//    private Assessment assessment;
     private Instructor instructor;
 
 
@@ -60,13 +62,13 @@ public class Course  {
         this.status = status;
     }
 
-    public Assessment getAssessment() {
-        return assessment;
-    }
-
-    public void setAssessment(Assessment assessment) {
-        this.assessment = assessment;
-    }
+//    public Assessment getAssessment() {
+//        return assessment;
+//    }
+//
+//    public void setAssessment(Assessment assessment) {
+//        this.assessment = assessment;
+//    }
 
     public Instructor getInstructor() {
         return instructor;
@@ -90,6 +92,22 @@ public class Course  {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public ArrayList<Assessment> getCourseAssessments() {
+        return assessments;
+    }
+
+    public void setCourseAssessments(ArrayList<Assessment> assessments) {
+        this.assessments = assessments;
+    }
+
+    public Assessment getCourseAssessment(int i) {
+        return assessments.get(i);
+    }
+
+    public void setCourseAssessment(Assessment assessment) {
+        this.assessments.add(assessment);
     }
 }
 
