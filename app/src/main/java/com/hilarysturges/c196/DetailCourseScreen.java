@@ -1,17 +1,10 @@
 package com.hilarysturges.c196;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
-
 import android.app.AlarmManager;
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
@@ -22,17 +15,19 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.Calendar;
 
-import static com.hilarysturges.c196.Channels.CHANNEL_1_ID;
+
+
+
 
 public class DetailCourseScreen extends AppCompatActivity {
 
     DBManager databaseMan;
-    private NotificationManagerCompat notificationManager;
-    private AlarmManager alarmManager;
     public int ID;
     public int startYear;
     public int startMonth;
@@ -40,13 +35,16 @@ public class DetailCourseScreen extends AppCompatActivity {
     public int endYear;
     public int endMonth;
     public int endDay;
+    private Switch startSwitch;
+    private Switch endSwitch;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        notificationManager = NotificationManagerCompat.from(this);
-        alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        startSwitch = new Switch(this);
+        endSwitch = new Switch(this);
 
         databaseMan = new DBManager(this, null, null, 1);
 
@@ -56,10 +54,8 @@ public class DetailCourseScreen extends AppCompatActivity {
         final EditText titleEdit = new EditText(this);
         TextView startText = new TextView(this);
         final EditText startEdit = new EditText(this);
-        Switch startSwitch = new Switch(this);
         TextView endText = new TextView(this);
         final EditText endEdit = new EditText(this);
-        Switch endSwitch = new Switch(this);
         TextView statusText = new TextView(this);
         final EditText statusEdit = new EditText(this);
         TextView instructorsText = new TextView(this);
@@ -202,11 +198,21 @@ public class DetailCourseScreen extends AppCompatActivity {
         deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                try {databaseMan.removeCourse(_id);}
-                catch (Exception e) {System.out.println(e.getMessage());}
-                MainActivity.courses.remove(index);
-                Intent i = new Intent(getApplicationContext(), CourseScreen.class);
-                startActivity(i);
+                ArrayList<Assessment> assessments = new ArrayList<>();
+                ArrayList<Instructor> instructors = new ArrayList<>();
+                try {assessments = databaseMan.getAssocAssessments(_id);}
+                catch (Exception e) {System.out.println("Assessments: " + e.getMessage());}
+                try {instructors= databaseMan.getAssocInstructors(_id);}
+                catch (Exception e) {System.out.println("Instructors: " + e.getMessage());}
+                if (assessments.isEmpty() && instructors.isEmpty()) {
+                    try {databaseMan.removeCourse(_id);}
+                    catch (Exception e) {System.out.println("Delete: " + e.getMessage());}
+                    MainActivity.courses.remove(index);
+                    Intent i = new Intent(getApplicationContext(), CourseScreen.class);
+                    startActivity(i);
+                } else {
+                    Toast.makeText(getApplicationContext(), "Cannot delete course with linked assessments or instructors", Toast.LENGTH_LONG).show();
+                }
             }
         });
 
@@ -271,98 +277,66 @@ public class DetailCourseScreen extends AppCompatActivity {
                 }
             }
         });
+        startAlarm();
+        endAlarm();
     }
 
     public void startNotificationOn(Boolean b) {
-        PackageManager startPM = this.getPackageManager();
-        ComponentName receiver = new ComponentName(this, DeviceBootReceiver.class);
-        Intent startIntent = new Intent(getApplicationContext(), AlarmReceiver.class);
-        PendingIntent startPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, startIntent, 0);
-        AlarmManager startManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         if (b) {
             //turn notification on
-            System.out.println("turned on");
             databaseMan.turnCourseStartOn(ID);
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTimeInMillis(System.currentTimeMillis());
-            calendar.set(Calendar.HOUR_OF_DAY, 19);
-            calendar.set(Calendar.YEAR, startYear);
-            calendar.set(Calendar.MONTH, startMonth);
-            calendar.set(Calendar.DAY_OF_MONTH, startDay);
-            startPM.setComponentEnabledSetting(receiver, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
-            if (startManager!=null) {
-                startManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), startPendingIntent);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    startManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), startPendingIntent);
-                }
-            }
+            startAlarm();
 
         } else {
             //turn notification off
             databaseMan.turnCourseStartOff(ID);
-            if (startManager!=null) {
-                startManager.cancel(startPendingIntent); }
-            System.out.println("turned off");
-            startPM.setComponentEnabledSetting(receiver, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
         }
     }
 
     public void endNotificationOn(Boolean b) {
-        PackageManager endPM = this.getPackageManager();
-        ComponentName receiver = new ComponentName(this, DeviceBootReceiver.class);
-        Intent endIntent = new Intent(getApplicationContext(), AlarmReceiver.class);
-        PendingIntent endPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, endIntent, 0);
-        AlarmManager endManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         if (b) {
             //turn notification on
-            System.out.println("turned on");
             databaseMan.turnCourseEndOn(ID);
+            endAlarm();
+        } else {
+            //turn notification off
+            databaseMan.turnCourseEndOff(ID);
+        }
+    }
 
+    public void endAlarm() {
+        if ((endSwitch!=null) && endSwitch.isChecked()) {
+            Intent endIntent = new Intent(getApplicationContext(), EndAlarmReceiver.class);
+            PendingIntent endPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 2, endIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+            AlarmManager endManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
             Calendar calendar = Calendar.getInstance();
-            calendar.setTimeInMillis(System.currentTimeMillis());
-            Calendar startDate = Calendar.getInstance();
-            startDate.set(startYear, startMonth-1, startDay);
-            if (calendar.getTimeInMillis() == startDate.getTimeInMillis()) {
-//                Notification notification = new NotificationCompat.Builder(this, CHANNEL_1_ID)
-//                        .setSmallIcon(R.mipmap.ic_launcher)
-//                        .setContentTitle("WGU Student Tracker Tool")
-//                        .setContentText("Course started!")
-//                        .setPriority(NotificationCompat.PRIORITY_HIGH)
-//                        .build();
-//                notificationManager.notify(1, notification);
-
-                if (alarmManager!=null) {
-                    alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), endPendingIntent);
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), endPendingIntent);
-                    }
-                } endPM.setComponentEnabledSetting(receiver, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
-
-            }
-
-
-
-
-            calendar.set(Calendar.HOUR_OF_DAY, 21);
-            calendar.set(Calendar.MINUTE, 45);
             calendar.set(Calendar.YEAR, endYear);
-            calendar.set(Calendar.MONTH, endMonth);
+            calendar.set(Calendar.MONTH, endMonth - 1);
             calendar.set(Calendar.DAY_OF_MONTH, endDay);
-            if (endManager!=null) {
+            if (endManager != null) {
                 endManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), endPendingIntent);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     endManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), endPendingIntent);
                 }
             }
-            endPM.setComponentEnabledSetting(receiver, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
+        }
+    }
 
-        } else {
-            //turn notification off
-            databaseMan.turnCourseEndOff(ID);
-            if (endManager!=null) {
-            endManager.cancel(endPendingIntent); }
-            System.out.println("turned off");
-            endPM.setComponentEnabledSetting(receiver, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+    public void startAlarm() {
+         if ((startSwitch!=null) && startSwitch.isChecked()) {
+            Intent startIntent = new Intent(getApplicationContext(), StartAlarmReceiver.class);
+            PendingIntent startPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 1, startIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+            AlarmManager startManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(Calendar.YEAR, startYear);
+            calendar.set(Calendar.MONTH, startMonth - 1);
+            calendar.set(Calendar.DAY_OF_MONTH, startDay);
+            if (startManager != null) {
+                startManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), startPendingIntent);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    startManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), startPendingIntent);
+                }
+            }
         }
     }
 

@@ -34,6 +34,7 @@ public class DBManager extends SQLiteOpenHelper {
     public static final String COLUMN_NAME_A = "nameA";
     public static final String COLUMN_TYPE_A = "typeA";
     public static final String COLUMN_COURSE_ID_A = "courseIdA";
+    public static final String COLUMN_ALARM_NOT_A = "alarmNotA";
     public static final String TABLE_INSTRUCTORS = "instructors";
     public static final String COLUMN_ID_I = "idI";
     public static final String COLUMN_NAME_I = "nameI";
@@ -61,7 +62,7 @@ public class DBManager extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(courseQuery);
 
         String assessmentQuery = "CREATE TABLE IF NOT EXISTS " + TABLE_ASSESSMENTS + "(" + COLUMN_ID_A + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-                + COLUMN_NAME_A + " TEXT, " + COLUMN_TYPE_A + " TEXT, " + COLUMN_COURSE_ID_A + " INTEGER, "
+                + COLUMN_NAME_A + " TEXT, " + COLUMN_TYPE_A + " TEXT, " + COLUMN_COURSE_ID_A + " INTEGER, " + COLUMN_ALARM_NOT_A + " INTEGER, "
                 + "FOREIGN KEY (" + COLUMN_COURSE_ID_A + ") REFERENCES " + TABLE_INSTRUCTORS + "(" + COLUMN_ID_C + "));";
         sqLiteDatabase.execSQL(assessmentQuery);
 
@@ -230,13 +231,12 @@ public class DBManager extends SQLiteOpenHelper {
                 java.sql.Date endDateNew = Date.valueOf(endDate);
                 Term term = new Term(c.getInt(c.getColumnIndex(COLUMN_ID_T)), c.getString(c.getColumnIndex(COLUMN_TITLE_T)), startDateNew, endDateNew);
                 while (!cC.isAfterLast()) {
-                    if ((!cC.isNull(cC.getColumnIndex(COLUMN_ID_C))) && (cC.getString(cC.getColumnIndex(COLUMN_TERM_ID_C)).equalsIgnoreCase(c.getString(c.getColumnIndex(COLUMN_ID_T))))) {
-                        System.out.println("adding course");
+                    if ((!cC.isNull(cC.getColumnIndex(COLUMN_ID_C))) && (!cC.isNull(cC.getColumnIndex(COLUMN_TERM_ID_C))) && (cC.getString(cC.getColumnIndex(COLUMN_TERM_ID_C)).equalsIgnoreCase(c.getString(c.getColumnIndex(COLUMN_ID_T))))) {
                         String startDateC = cC.getString(cC.getColumnIndex(COLUMN_START_C));
                         java.sql.Date startDateNewC = Date.valueOf(startDateC);
                         String endDateC = cC.getString(cC.getColumnIndex(COLUMN_END_C));
                         java.sql.Date endDateNewC = Date.valueOf(endDateC);
-                        Course course = new Course(cC.getString(cC.getColumnIndex(COLUMN_TITLE_C)), startDateNewC, endDateNewC, cC.getString(cC.getColumnIndex(COLUMN_STATUS_C)));
+                        Course course = new Course(cC.getInt(cC.getColumnIndex(COLUMN_ID_C)),cC.getString(cC.getColumnIndex(COLUMN_TITLE_C)), startDateNewC, endDateNewC, cC.getString(cC.getColumnIndex(COLUMN_STATUS_C)));
                         if (term.getTermCourses() == null) {
                             ArrayList<Course> courses = new ArrayList<>();
                             term.setTermCourses(courses);
@@ -283,7 +283,7 @@ public class DBManager extends SQLiteOpenHelper {
                 }
                 while (!cA.isAfterLast()) {
                     if ((!cA.isNull(cA.getColumnIndex(COLUMN_COURSE_ID_A))) && cA.getString(cA.getColumnIndex(COLUMN_COURSE_ID_A)).equalsIgnoreCase(c.getString(c.getColumnIndex(COLUMN_ID_C)))) {
-                        Assessment assessment = new Assessment(cA.getString(cA.getColumnIndex(COLUMN_NAME_A)), cA.getString(cA.getColumnIndex(COLUMN_TYPE_A)));
+                        Assessment assessment = new Assessment(cA.getInt(cA.getColumnIndex(COLUMN_ID_A)),cA.getString(cA.getColumnIndex(COLUMN_NAME_A)), cA.getString(cA.getColumnIndex(COLUMN_TYPE_A)));
                         if (course.getCourseAssessments()==null) {
                             ArrayList<Assessment> assessments = new ArrayList<>();
                             course.setCourseAssessments(assessments);
@@ -296,7 +296,7 @@ public class DBManager extends SQLiteOpenHelper {
                 }
                 while (!cI.isAfterLast()) {
                     if ((!cI.isNull(cI.getColumnIndex(COLUMN_COURSE_ID_I))) && cI.getString(cI.getColumnIndex(COLUMN_COURSE_ID_I)).equalsIgnoreCase(c.getString(c.getColumnIndex(COLUMN_ID_C)))) {
-                        Instructor instructor = new Instructor(cI.getString(cI.getColumnIndex(COLUMN_NAME_I)), cI.getString(cI.getColumnIndex(COLUMN_PHONE_I)), cI.getString(cI.getColumnIndex(COLUMN_EMAIL_I)));
+                        Instructor instructor = new Instructor(cI.getInt(cI.getColumnIndex(COLUMN_ID_I)),cI.getString(cI.getColumnIndex(COLUMN_NAME_I)), cI.getString(cI.getColumnIndex(COLUMN_PHONE_I)), cI.getString(cI.getColumnIndex(COLUMN_EMAIL_I)));
                         course.setInstructor(instructor);
                         cI.moveToNext();
                     } else {
@@ -345,6 +345,7 @@ public class DBManager extends SQLiteOpenHelper {
 
             } c.moveToNext();
         }
+        c.close();
         db.close();
         return instructors;
     }
@@ -492,9 +493,14 @@ public class DBManager extends SQLiteOpenHelper {
         String query = "SELECT * FROM " + TABLE_COURSES + " WHERE idC = " + _id + ";";
         Cursor c = db.rawQuery(query, null);
         c.moveToFirst();
-        if (!c.isNull(c.getColumnIndex(COLUMN_START_NOT_C))) {
-            return c.getInt(c.getColumnIndex(COLUMN_START_NOT_C));
+        if (!c.isAfterLast()) {
+            if (!c.isNull(c.getColumnIndex(COLUMN_START_NOT_C))) {
+                return c.getInt(c.getColumnIndex(COLUMN_START_NOT_C));
+            } else {
+                return 0;
+            }
         } else {
+            c.close();
             return 0;
         }
     }
@@ -518,9 +524,14 @@ public class DBManager extends SQLiteOpenHelper {
         String query = "SELECT * FROM " + TABLE_COURSES + " WHERE idC = " + _id + ";";
         Cursor c = db.rawQuery(query, null);
         c.moveToFirst();
-        if (!c.isNull(c.getColumnIndex(COLUMN_END_NOT_C))) {
-            return c.getInt(c.getColumnIndex(COLUMN_END_NOT_C));
+        if (!c.isAfterLast()) {
+            if (!c.isNull(c.getColumnIndex(COLUMN_END_NOT_C))) {
+                return c.getInt(c.getColumnIndex(COLUMN_END_NOT_C));
+            } else {
+                return 0;
+            }
         } else {
+            c.close();
             return 0;
         }
     }
@@ -529,6 +540,88 @@ public class DBManager extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
         String query = "UPDATE " + TABLE_COURSES + " SET " + COLUMN_TERM_ID_C + " = "
                 + term_id + " WHERE idC = " + course_id + ";";
+        db.execSQL(query);
+        db.close();
+    }
+
+    public ArrayList<Course> getAssocCourses(int term_id) {
+        ArrayList<Course> courses = new ArrayList<>();
+        SQLiteDatabase db = getWritableDatabase();
+        String query = "SELECT * FROM " + TABLE_COURSES + " WHERE " + COLUMN_TERM_ID_C + " = " + term_id + ";";
+        Cursor c = db.rawQuery(query, null);
+        c.moveToFirst();
+        while (!c.isAfterLast()) {
+            for (int i=0 ; i<MainActivity.courses.size() ; i++) {
+                if (MainActivity.courses.get(i).get_id()==c.getInt(c.getColumnIndex(COLUMN_ID_C))) {
+                    courses.add(MainActivity.courses.get(i));
+                }
+            } c.moveToNext();
+        }
+        c.close();
+        return courses;
+    }
+
+    public ArrayList<Instructor> getAssocInstructors(int course_id) {
+        ArrayList<Instructor> instructors = new ArrayList<>();
+        SQLiteDatabase db = getWritableDatabase();
+        String query = "SELECT * FROM " + TABLE_INSTRUCTORS + " WHERE " + COLUMN_COURSE_ID_I + " = " + course_id + ";";
+        Cursor c = db.rawQuery(query, null);
+        c.moveToFirst();
+        while (!c.isAfterLast()) {
+            for (int i=0 ; i<MainActivity.instructors.size() ; i++) {
+                if (MainActivity.instructors.get(i).get_id()==c.getInt(c.getColumnIndex(COLUMN_ID_I))) {
+                    instructors.add(MainActivity.instructors.get(i));
+                }
+            } c.moveToNext();
+        }
+        c.close();
+        return instructors;
+    }
+
+    public ArrayList<Assessment> getAssocAssessments(int course_id) {
+        ArrayList<Assessment> assessments = new ArrayList<>();
+        SQLiteDatabase db = getWritableDatabase();
+        String query = "SELECT * FROM " + TABLE_ASSESSMENTS + " WHERE " + COLUMN_COURSE_ID_A + " = " + course_id + ";";
+        Cursor c = db.rawQuery(query, null);
+        c.moveToFirst();
+        while (!c.isAfterLast()) {
+            for (int i=0 ; i<MainActivity.assessments.size() ; i++) {
+                if (MainActivity.assessments.get(i).get_id()==c.getInt(c.getColumnIndex(COLUMN_ID_A))) {
+                    assessments.add(MainActivity.assessments.get(i));
+                }
+            } c.moveToNext();
+        }
+        c.close();
+        return assessments;
+    }
+
+    public int checkAssessmentAlarmOn(int _id) {
+        SQLiteDatabase db = getWritableDatabase();
+        String query = "SELECT * FROM " + TABLE_ASSESSMENTS + " WHERE idA = " + _id + ";";
+        Cursor c = db.rawQuery(query, null);
+        c.moveToFirst();
+        if (!c.isAfterLast()) {
+            if (!c.isNull(c.getColumnIndex(COLUMN_ALARM_NOT_A))) {
+                return c.getInt(c.getColumnIndex(COLUMN_ALARM_NOT_A));
+            } else {
+                return 0;
+            }
+        } else {
+            c.close();
+            return 0;
+        }
+    }
+
+    public void turnAssessmentAlarmOn(int _id) {
+        SQLiteDatabase db = getWritableDatabase();
+        String query = "UPDATE " + TABLE_ASSESSMENTS + " SET " + COLUMN_ALARM_NOT_A + " = 1 WHERE idA = " + _id + ";";
+        db.execSQL(query);
+        db.close();
+    }
+
+    public void turnAssessmentAlarmOff(int _id) {
+        SQLiteDatabase db = getWritableDatabase();
+        String query = "UPDATE " + TABLE_ASSESSMENTS+ " SET " + COLUMN_ALARM_NOT_A + " = 0 WHERE idA = " + _id + ";";
         db.execSQL(query);
         db.close();
     }

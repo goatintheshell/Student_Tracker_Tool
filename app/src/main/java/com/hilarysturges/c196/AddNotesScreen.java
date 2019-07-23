@@ -13,6 +13,8 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 public class AddNotesScreen extends AppCompatActivity {
 
     DBManager databaseMan;
@@ -28,6 +30,7 @@ public class AddNotesScreen extends AppCompatActivity {
         linearLayout.setOrientation(LinearLayout.VERTICAL);
         TextView notesText = new TextView(this);
         final EditText notesEdit = new EditText(this);
+        FloatingActionButton shareButton = new FloatingActionButton(this);
         Button addNotesButton = new Button(this);
 
         Intent data = getIntent();
@@ -40,11 +43,14 @@ public class AddNotesScreen extends AppCompatActivity {
 
         notesText.setText("Notes:");
         notesText.setTextSize(30);
+        notesText.setPadding(30,0,0,0);
         addNotesButton.setText("Save Notes");
+        shareButton.setImageResource(R.drawable.ic_share_white_24dp);
+        shareButton.setPadding(30,0,0,0);
+        shareButton.setClickable(true);
         notesEdit.setHint("Type notes here");
         notesEdit.setTextSize(30);
-        notesEdit.setHeight(400);
-        notesEdit.setWidth(300);
+        notesEdit.setPadding(30,0,0,30);
         notesEdit.setInputType(InputType.TYPE_TEXT_VARIATION_LONG_MESSAGE);
         notesEdit.setSingleLine(false);
         notesEdit.setImeOptions(EditorInfo.IME_FLAG_NO_ENTER_ACTION);
@@ -52,6 +58,7 @@ public class AddNotesScreen extends AppCompatActivity {
         linearLayout.addView(notesText);
         linearLayout.addView(notesEdit);
         linearLayout.addView(addNotesButton);
+        linearLayout.addView(shareButton);
 
         scrollView.addView(linearLayout);
         setContentView(scrollView);
@@ -63,6 +70,17 @@ public class AddNotesScreen extends AppCompatActivity {
                 catch (Exception e) {System.out.println(e.getMessage());}
                 MainActivity.courses.get(index).setNotes(notesEdit.getText().toString());
                 Intent i = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(i);
+            }
+        });
+
+        shareButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent();
+                i.setAction(Intent.ACTION_SEND);
+                i.putExtra(Intent.EXTRA_TEXT, notesEdit.getText().toString());
+                i.setType("text/plain");
                 startActivity(i);
             }
         });

@@ -37,6 +37,18 @@ public class AssessmentScreen extends AppCompatActivity {
             final String type = MainActivity.assessments.get(i).getType();
             final String id = String.valueOf(MainActivity.assessments.get(i).get_id());
             final String index = String.valueOf(i);
+            final String[] courseDetails = new String[2];
+            for (int j=0 ; j<MainActivity.courses.size() ; j++) {
+                if (MainActivity.courses.get(j).getCourseAssessments()!=null) {
+                    for (int k=0 ; k<MainActivity.courses.get(j).getCourseAssessments().size() ; k++) {
+                        Assessment assessment = MainActivity.courses.get(j).getCourseAssessment(k);
+                        if (String.valueOf(assessment.get_id()).equals(id)) {
+                            courseDetails[0] = String.valueOf(MainActivity.courses.get(j).getEndDate());
+                            courseDetails[1] = MainActivity.courses.get(j).getNotes();
+                        }
+                    }
+                }
+            }
 
             textView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -47,13 +59,17 @@ public class AssessmentScreen extends AppCompatActivity {
                     intent.putExtra("type", type);
                     intent.putExtra("ID", id);
                     intent.putExtra("index", index);
+                    intent.putExtra("courseDueDate", courseDetails[0] );
+                    intent.putExtra("notes", courseDetails[1]);
                     startActivity(intent);
                 }
             });
             linearLayout.addView(textView);
 
-
         }
+
+
+
         Button addAssessmentButton = new Button(this);
         addAssessmentButton.setText("Add Assessment");
         Button homeScreenButton = new Button(this);

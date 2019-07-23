@@ -10,9 +10,11 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.sql.Date;
 import java.sql.SQLOutput;
+import java.util.ArrayList;
 
 public class DetailTermScreen extends AppCompatActivity {
 
@@ -38,7 +40,7 @@ public class DetailTermScreen extends AppCompatActivity {
         Button deleteButton = new Button(this);
         linearLayout.setOrientation(LinearLayout.VERTICAL);
 
-        Intent data = getIntent();
+        final Intent data = getIntent();
         String title = data.getStringExtra("title");
         String start = data.getStringExtra("start");
         String end = data.getStringExtra("end");
@@ -101,11 +103,18 @@ public class DetailTermScreen extends AppCompatActivity {
         deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                try {databaseMan.removeTerm(_id);}
-                catch (Exception e) {System.out.println(e.getMessage());}
-                MainActivity.terms.remove(index);
-                Intent i = new Intent(getApplicationContext(), TermScreen.class);
-                startActivity(i);
+                ArrayList<Course> courses = new ArrayList<>();
+                try {courses = databaseMan.getAssocCourses(_id);}
+                catch (Exception e) {System.out.println("assocCourse:" + e.getMessage());}
+                if (courses.isEmpty()) {
+                    try {databaseMan.removeTerm(_id);}
+                    catch (Exception e) { System.out.println("deleteTerm: " + e.getMessage());}
+                    MainActivity.terms.remove(index);
+                    Intent i = new Intent(getApplicationContext(), TermScreen.class);
+                    startActivity(i);
+                } else {
+                    Toast.makeText(getApplicationContext(), "Cannot delete term with linked course(s)", Toast.LENGTH_LONG).show();
+                }
             }
         });
 

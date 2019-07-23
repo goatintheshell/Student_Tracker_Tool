@@ -2,11 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.hilarysturges.c196">
 
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.SET_ALARM"/>
 
     <application
-        android:name=".Channels"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -36,15 +34,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <receiver
-            android:name=".DeviceBootReceiver"
-            android:enabled="false">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>
-        <receiver android:name=".AlarmReceiver" />
+        <receiver android:name=".StartAlarmReceiver" android:enabled="true"/>
+        <receiver android:name=".EndAlarmReceiver" android:enabled="true"/>
+        <receiver android:name=".AssessmentAlarmReceiver" android:enabled="true"/>
     </application>
 
 </manifest>
